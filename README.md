@@ -12,7 +12,7 @@ It follows the [IPMI Management FRU Information Storage Definition Specification
 ## Usage:
 Generating a FRU data file:
 ```
-$ ipmi-fru-it -w -s 2048 -c fru.conf -o FRU.bin
+$ ipmi-fru-it -s 256 -c fru.conf -o FRU.bin
 ```
 Reading a FRU data file:
 ```

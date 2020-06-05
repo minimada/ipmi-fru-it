@@ -11,7 +11,7 @@ PARSER_HEADERS 	:= $(PARSER_DIR)/src
 
 HIDE     := @
 CC       := gcc
-CFLAGS   := -g -Wall
+CFLAGS   := -g -Wall -std=gnu99
 INCLUDES := -I $(PARSER_HEADERS)
 LDFLAGS	 := -L $(PARSER_DIR) -liniparser -lz
 

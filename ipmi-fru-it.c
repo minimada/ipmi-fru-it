@@ -47,12 +47,12 @@ const char* FRU_FILE_ID     = "fru_file_id";
 
 int (*packer)(const char *, char **);
 
-inline uint8_t get_6bit_ascii(char c)
+static inline uint8_t get_6bit_ascii(char c)
 {
     return (c - 0x20) & 0x3f;
 }
 
-inline uint8_t get_aligned_size(uint8_t size, uint8_t align)
+static inline uint8_t get_aligned_size(uint8_t size, uint8_t align)
 {
     return (size + align - 1) & ~(align - 1);
 }

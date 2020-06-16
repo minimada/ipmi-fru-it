@@ -361,6 +361,7 @@ int gen_bia(dictionary *ini, char **bia_data)
          *name_packed,
          *serial_num_packed,
          *part_num_packed,
+         *fru_file_packed,
          *key,
          **sec_keys;
 
@@ -374,6 +375,7 @@ int gen_bia(dictionary *ini, char **bia_data)
         part_num_size,
         num_keys,
         packed_size,
+        fru_file_size,
         i;
 
     uint8_t end_marker, empty_marker, cksum;
@@ -432,8 +434,16 @@ int gen_bia(dictionary *ini, char **bia_data)
         part_num_packed = NULL;
         size += 1;
     }
-    /* We don't handle FRU File ID for now... */
-    size += 1;
+
+    str_data = iniparser_getstring(ini, get_key(BIA, FRU_FILE_ID), NULL);
+    if (str_data && strlen(str_data)) {
+        fru_file_size = (*packer)(str_data, &fru_file_packed);
+        size += fru_file_size;
+    } else {
+        fru_file_packed = NULL;
+        size += 1;
+    }
+    fprintf(stdout,  "\nfru file data:%s, size:%d\n", str_data, fru_file_size);
 
     num_keys = iniparser_getsecnkeys(ini, BIA);
     sec_keys = iniparser_getseckeys(ini, BIA);
@@ -501,9 +511,14 @@ int gen_bia(dictionary *ini, char **bia_data)
         memcpy(bia->tl + offset, &empty_marker, 1);
         offset += 1;
     }
-    /* We don't handle FRU File ID for now... */
-    memcpy(bia->tl + offset, &empty_marker, 1);
-    offset += 1;
+
+    if (fru_file_packed) {
+        memcpy(bia->tl + offset, fru_file_packed, fru_file_size);
+        offset += fru_file_size;
+    } else {
+        memcpy(bia->tl + offset, &empty_marker, 1);
+        offset += 1;
+    }
 
     for (i = 0; i < num_keys; i++) {
         key = sec_keys[i];
@@ -548,6 +563,7 @@ int gen_pia(dictionary *ini, char **pia_data)
          *version_packed,
          *serial_num_packed,
          *asset_tag_packed,
+         *fru_file_packed,
          *key,
          **sec_keys;
 
@@ -560,6 +576,7 @@ int gen_pia(dictionary *ini, char **pia_data)
         version_size,
         serial_num_size,
         asset_tag_size,
+        fru_file_size,
         packed_size,
         num_keys,
         i;
@@ -634,8 +651,16 @@ int gen_pia(dictionary *ini, char **pia_data)
         asset_tag_packed = NULL;
         size += 1;
     }
-    /* We don't handle FRU File ID for now... */
-    size += 1;
+
+    str_data = iniparser_getstring(ini, get_key(PIA, FRU_FILE_ID), NULL);
+    if (str_data && strlen(str_data)) {
+        fru_file_size = (*packer)(str_data, &fru_file_packed);
+        size += fru_file_size;
+    } else {
+        /* predfined fields with no data take 1 byte (for type/length) */
+        fru_file_packed = NULL;
+        size += 1;
+    }
 
     num_keys = iniparser_getsecnkeys(ini, PIA);
     sec_keys = iniparser_getseckeys(ini, PIA);
@@ -719,9 +744,14 @@ int gen_pia(dictionary *ini, char **pia_data)
         memcpy(pia->tl + offset, &empty_marker, 1);
         offset += 1;
     }
-    /* We don't handle FRU File ID for now... */
-    memcpy(pia->tl + offset, &empty_marker, 1);
-    offset += 1;
+
+    if (fru_file_packed) {
+        memcpy(pia->tl + offset, fru_file_packed, fru_file_size);
+        offset += fru_file_size;
+    } else {
+        memcpy(pia->tl + offset, &empty_marker, 1);
+        offset += 1;
+    }
 
     /* Second iteration copies packed contents into final buffer */
     for (i = 0; i < num_keys; i++) {

@@ -16,6 +16,7 @@ product_name=PRODUCT_NAME
 serial_number=123456
 part_number=1234567890
 board_custom_1=ABCD
+fru_file_id=FRU v0.01
 
 [pia]
 manufacturer=MANUFACTURER

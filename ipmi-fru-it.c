@@ -443,7 +443,6 @@ int gen_bia(dictionary *ini, char **bia_data)
         fru_file_packed = NULL;
         size += 1;
     }
-    fprintf(stdout,  "\nfru file data:%s, size:%d\n", str_data, fru_file_size);
 
     num_keys = iniparser_getsecnkeys(ini, BIA);
     sec_keys = iniparser_getseckeys(ini, BIA);

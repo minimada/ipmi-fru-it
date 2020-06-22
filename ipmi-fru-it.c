@@ -170,56 +170,73 @@ int pack_ascii6(const char *str, char **raw_data)
     *raw_data = data;
     return size;
 }
-
-/* All gen_* functions, except gen_iua(), return size as multiples of 8 */
-int gen_iua(dictionary *ini, char **iua_data)
+/***
+    return : data size
+    input
+    filename : the binary file name
+    buffer :       data buffer point of point
+ ***/
+// TODO add try catch for open error
+int get_bin_data(const char *filename, char **buffer)
 {
-    int fd, flags, size;
     struct stat st;
-
-    char *binkey, *filename, *data;
+    int fd = -1, flags = 0, size=0;
     struct internal_use_area *iua;
 
-    /* initialize some sane values */
-    fd = -1;
-    flags = size = 0;
-    data = NULL;
-    
-    /* We expect this section to have a single key - "binfile", with a value
-     * of the absolute path to the binary file to write to in the IUA
-     */
-    binkey = get_key(IUA, BINFILE);
-    
-    filename = iniparser_getstring(ini, binkey, NULL);
-
     if (!filename) {
-        fprintf(stderr, "\n%s not found!\n\n", binkey);
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "\n%s not found!\n\n", BINFILE);
+        // exit(EXIT_FAILURE);
+        return size;
     }
 
     /* Get size of file */
     stat(filename, &st);
     size = get_aligned_size((sizeof(struct internal_use_area)+st.st_size), 8);
-    data = (char *) malloc(size);
+    *buffer = (char *) malloc(size);
 
     /* Write format version */
-    iua = ((struct internal_use_area *) data);
+    iua = ((struct internal_use_area *) *buffer);
     iua->format_version = 0x01;
                 
     flags = O_RDONLY;
     if((fd = open(filename, flags)) == -1) {
         fprintf(stderr, "\nUnable to open %s for reading!\n\n", filename);
-        exit(EXIT_FAILURE);
+        // exit(EXIT_FAILURE);
+        return size;
     }
     
     int result = read(fd, iua->data, st.st_size);
     if (result != st.st_size) {
         fprintf(stdout,  "\nError reading entire file content!\n\n");
-        exit(EXIT_FAILURE);
+        // exit(EXIT_FAILURE);
+        return size;
     }
+    size = result;
     
     close(fd);
+    return size;
+}
+
+/* All gen_* functions, except gen_iua(), return size as multiples of 8 */
+int gen_iua(dictionary *ini, char **iua_data)
+{
+    char *binkey, *filename, *data;
+    int size = 0;
+    /* initialize some sane values */
+    data = NULL;
+
+    /* We expect this section to have a single key - "binfile", with a value
+     * of the absolute path to the binary file to write to in the IUA
+     */
+    binkey = get_key(IUA, BINFILE);
+
+    filename = iniparser_getstring(ini, binkey, NULL);
+
+    size = get_bin_data(filename, &data);
+
     *iua_data = data;
+
+    // add new part of IUA
 
     return size;
 }
